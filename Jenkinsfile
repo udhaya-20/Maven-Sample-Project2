@@ -23,7 +23,7 @@ pipeline {
 				steps {
 					echo "Backuping build"
 					bat 'mkdir build_backups'
-					bat 'cp target/MavenProject-0.0.1-SNAPSHOT.jar build_backups/'
+					bat 'copy target/MavenProject-0.0.1-SNAPSHOT.jar build_backups/'
 					echo "Backup successfull"
 				}
 			}
