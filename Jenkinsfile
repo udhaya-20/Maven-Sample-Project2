@@ -23,7 +23,7 @@ pipeline {
 				steps {
 					echo "Backuping build"
 					bat 'mkdir build_backups'
-					bat 'copy target\*.jar build_backups'
+					bat 'copy target\\*.jar build_backups'
 					echo "Backup successfull"
 				}
 			}
