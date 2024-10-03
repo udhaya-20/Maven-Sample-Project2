@@ -1,0 +1,33 @@
+pipeline {
+	agent any 
+		stages {
+			stage('validation') {
+				steps {
+					echo "Checking for 'pom.xml' file for Maven project"
+					sh 'mvn validate'
+				}
+			}
+			stage('build') {
+				steps {
+					echo "Making build for maven project"
+					sh 'mvn package'
+				}
+			}
+			stage('execute') {
+				steps {
+					echo "Executing the build to get the output for maven project"
+					sh 'java -jar target/MavenProject-0.0.1-SNAPSHOT.jar'
+				}
+			}
+			stage('backup') {
+				steps {
+					echo "Backuping build"
+					sh '''
+             mkdir build_backups
+			       copy target\\*.jar build_backups
+          '''
+					echo "Backup successfull"
+				}
+			}
+		}
+}
