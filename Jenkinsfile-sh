@@ -22,8 +22,8 @@ pipeline {
 			stage('backup') {
 				steps {
 					echo "Backuping build"
+// 					mkdir build_backups
 					sh '''
-             					// mkdir build_backups
 			       			copy target/MavenProject-0.0.1-SNAPSHOT.jar build_backups
           				'''
 					echo "Backup successfull"
