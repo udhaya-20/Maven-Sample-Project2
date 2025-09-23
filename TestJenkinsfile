@@ -45,28 +45,27 @@ pipeline {
 
         stage('Check Quality Gate via API') {
             steps {
-                script {
-
+               script {
                     echo "Waiting for SonarQube analysis to complete..."
 
                     timeout(time: 10, unit: 'MINUTES') {
                         def status = ''
                         while (status == '' || status == 'PENDING') {
-                            sleep(time: 10, unit: 'SECONDS')  // Poll every 10 seconds
+                            sleep(time: 10, unit: 'SECONDS')
 
-                            // Use PowerShell to call SonarQube REST API with basic auth
+                            // Call SonarQube REST API using Groovy variables
                             def response = powershell(
                                 script: """
-                                \$headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('%SONARQUBE_TOKEN%:')) }
-                                \$res = Invoke-RestMethod -Uri "%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%" -Headers \$headers
-                                \$res | ConvertTo-Json -Compress
+                                    \$headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('${SONARQUBE_TOKEN}:')) }
+                                    \$res = Invoke-RestMethod -Uri "${SONARQUBE_SERVER}/api/qualitygates/project_status?projectKey=${SONARQUBE_PROJECT_KEY}" -Headers \$headers
+                                    \$res | ConvertTo-Json -Compress
                                 """,
                                 returnStdout: true
                             ).trim()
 
-                            echo "API Response: ${response}"  // Debug the API response
-                            
-                            def json = new JsonSlurper().parseText(response)
+                            echo "API Response: ${response}"
+
+                            def json = new groovy.json.JsonSlurper().parseText(response)
                             status = json.projectStatus.status
                             echo "Current Quality Gate status: ${status}"
                         }
@@ -78,8 +77,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
 
         stage('deploy') {
           //  when {
