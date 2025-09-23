@@ -58,7 +58,7 @@ pipeline {
                             def response = powershell(
                                 script: """
                                 \$headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('%SONARQUBE_TOKEN%:')) }
-                                \$res = Invoke-RestMethod -Uri '%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%' -Headers \$headers
+                                \$res = Invoke-RestMethod -Uri "%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%" -Headers \$headers
                                 \$res | ConvertTo-Json -Compress
                                 """,
                                 returnStdout: true
