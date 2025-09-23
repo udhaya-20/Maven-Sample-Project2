@@ -41,6 +41,34 @@ pipeline {
             }
         }
 
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {  // Wait for maximum 5 minutes for SonarQube server response
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Quality Gate failed with status: ${qg.status}"
+                        } else {
+                            echo "Quality Gate passed. Ready for deployment!"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('deploy') {
+          //  when {
+          //      expression {
+          //          return currentBuild.result == null || currentBuild.result == 'SUCCESS'
+          //      }
+          //  }
+            steps {
+                echo "Triggering Deployment pipeline..."
+                // Add your deployment steps here
+            }
+        }
+    }
+
       //  stage('execute') {
       //      steps {
       //          echo "Executing the build to get the output for maven project"
