@@ -1,0 +1,61 @@
+pipeline {
+    agent any 
+
+    tools {
+        maven 'Maven'
+        jdk 'JDK21'
+	}
+
+    environment {
+        SONARQUBE_TOKEN = credentials('sonarqube-token')   // Jenkins credential ID for your SonarQube token
+        SONARQUBE_SERVER = 'http://localhost:9000'
+        SONARQUBE_PROJECT_KEY = 'Java4Sonar-Project'
+    }
+
+    stages {
+        stage('validation') {
+            steps {
+                echo "Checking for 'pom.xml' file for Maven project"
+                bat 'mvn validate'
+            }
+        }
+
+        stage('build') {
+            steps {
+                echo "Making build for maven project"
+                bat 'mvn package'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    echo "Running SonarQube analysis..."
+                    bat """
+                        mvn sonar:sonar ^
+                        -Dsonar.projectKey=%SONARQUBE_PROJECT_KEY% ^
+                        -Dsonar.host.url=%SONARQUBE_SERVER% ^
+                        -Dsonar.login=%SONARQUBE_TOKEN%
+                    """
+                }
+            }
+        }
+
+      //  stage('execute') {
+      //      steps {
+      //          echo "Executing the build to get the output for maven project"
+      //          bat 'java -jar target/MavenProject-0.0.1-SNAPSHOT.jar'
+      //      }
+      //  }
+
+    }
+    post {
+       success {
+           echo 'Pipeline executed Successfully!'
+       }
+       failure {
+           echo 'Pipeline execution Failed!'
+       }
+   }
+}
+
