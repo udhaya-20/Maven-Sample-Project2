@@ -7,7 +7,7 @@ pipeline {
    //}
 
     environment {
-        SONARQUBE_TOKEN = credentials('sonarqube-token')   // Jenkins credential ID for your SonarQube token
+        SONARQUBE_TOKEN = credentials('jenkins2sonarqube')   // Jenkins credential ID for your SonarQube token
         SONARQUBE_SERVER = 'http://localhost:9000'
         SONARQUBE_PROJECT_KEY = 'Java4Sonar-Project'
     }
@@ -23,20 +23,20 @@ pipeline {
         stage('build') {
             steps {
                 echo "Making build for maven project"
-                bat 'mvn package'
+                bat 'mvn clean package'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv(installationName: 'SonarQube') {
                     echo "Running SonarQube analysis..."
-                    bat """
+                    bat '''
                         mvn sonar:sonar ^
                         -Dsonar.projectKey=%SONARQUBE_PROJECT_KEY% ^
                         -Dsonar.host.url=%SONARQUBE_SERVER% ^
                         -Dsonar.login=%SONARQUBE_TOKEN%
-                    """
+                    '''
                 }
             }
         }
