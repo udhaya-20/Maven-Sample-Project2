@@ -1,10 +1,10 @@
 pipeline {
     agent any 
 
-    tools {
-        maven 'Maven3'
-        jdk 'JDK-21'
-	}
+   // tools {
+   //     maven 'Maven3'
+   //     jdk 'JDK-21'
+   //}
 
     environment {
         SONARQUBE_TOKEN = credentials('sonarqube-token')   // Jenkins credential ID for your SonarQube token
