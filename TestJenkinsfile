@@ -45,11 +45,8 @@ pipeline {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {  // Wait for maximum 5 minutes for SonarQube server response
                     script {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Quality Gate failed with status: ${qg.status}"
-                        } else {
-                            echo "Quality Gate passed. Ready for deployment!"
+                        def qg = waitForQualityGate abortPipeline: true
+                        echo "SonarQube Quality Gate status: ${qg.status}"
                         }
                     }
                 }
