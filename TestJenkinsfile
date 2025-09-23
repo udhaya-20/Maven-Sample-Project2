@@ -41,12 +41,34 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Check Quality Gate via API') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {  // Wait for maximum 5 minutes for SonarQube server response
-                    script {
-                        def qg = waitForQualityGate abortPipeline: true
-                        echo "SonarQube Quality Gate status: ${qg.status}"
+                script {
+                    echo "Waiting for SonarQube analysis to complete..."
+                    
+                    // Polling loop to wait for analysis completion
+                    timeout(time: 10, unit: 'MINUTES') {
+                        def status = ''
+                        while (status == '' || status == 'PENDING') {
+                            sleep(time: 10, unit: 'SECONDS')  // wait 10 seconds before retry
+                            def response = bat(
+                                script: """
+                                    curl -s -u %SONARQUBE_TOKEN%: ^
+                                    "%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%"
+                                """, 
+                                returnStdout: true
+                            ).trim()
+                            
+                            def json = readJSON text: response
+                            status = json.projectStatus.status
+                            echo "Current Quality Gate status: ${status}"
+                        }
+                        
+                        if (status != 'OK') {
+                            error "Quality Gate failed with status: ${status}"
+                        } else {
+                            echo "Quality Gate passed! Ready for deployment."
+                        }
                     }
                 }
             }
