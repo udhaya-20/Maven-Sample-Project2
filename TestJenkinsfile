@@ -44,26 +44,32 @@ pipeline {
         stage('Check Quality Gate via API') {
             steps {
                 script {
+                    import groovy.json.JsonSlurper
+
                     echo "Waiting for SonarQube analysis to complete..."
-                    
-                    // Polling loop to wait for analysis completion
+
                     timeout(time: 10, unit: 'MINUTES') {
                         def status = ''
                         while (status == '' || status == 'PENDING') {
-                            sleep(time: 10, unit: 'SECONDS')  // wait 10 seconds before retry
-                            def response = bat(
+                            sleep(time: 10, unit: 'SECONDS')  // Poll every 10 seconds
+
+                            // Use PowerShell to call SonarQube REST API with basic auth
+                            def response = powershell(
                                 script: """
-                                    curl -s -u %SONARQUBE_TOKEN%: ^
-                                    "%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%"
-                                """, 
+                                \$headers = @{ Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('%SONARQUBE_TOKEN%:')) }
+                                \$res = Invoke-RestMethod -Uri '%SONARQUBE_SERVER%/api/qualitygates/project_status?projectKey=%SONARQUBE_PROJECT_KEY%' -Headers \$headers
+                                \$res | ConvertTo-Json -Compress
+                                """,
                                 returnStdout: true
                             ).trim()
+
+                            echo "API Response: ${response}"  // Debug the API response
                             
-                            def json = readJSON text: response
+                            def json = new JsonSlurper().parseText(response)
                             status = json.projectStatus.status
                             echo "Current Quality Gate status: ${status}"
                         }
-                        
+
                         if (status != 'OK') {
                             error "Quality Gate failed with status: ${status}"
                         } else {
